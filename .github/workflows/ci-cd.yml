@@ -10,7 +10,7 @@ on:
 env:
   AWS_REGION: us-east-2
   ECR_REPOSITORY: fresh-smoothie
-  EKS_CLUSTER: eks-first
+  EKS_CLUSTER: eks-fist
 
 jobs:
   build-and-deploy:
