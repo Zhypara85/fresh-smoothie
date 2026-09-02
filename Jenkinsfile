@@ -1,9 +1,12 @@
 pipeline {
     agent any
-environment {
-    PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-}
+
+    environment {
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -33,6 +36,7 @@ environment {
         success {
             echo 'Fresh Smoothie pipeline completed successfully!'
         }
+
         failure {
             echo 'Fresh Smoothie pipeline failed.'
         }
