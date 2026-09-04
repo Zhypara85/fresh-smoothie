@@ -3,6 +3,9 @@ pipeline {
 
     environment {
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        AWS_REGION = "us-east-2"
+        ECR_REGISTRY = "274044235662.dkr.ecr.us-east-2.amazonaws.com"
+        ECR_REPOSITORY = "fresh-smoothie"
     }
 
     stages {
@@ -32,11 +35,19 @@ pipeline {
 
         stage('Push to ECR') {
             steps {
-                sh '''
-                    aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 779685156685.dkr.ecr.us-east-2.amazonaws.com
-                    docker tag fresh-smoothie:latest 779685156685.dkr.ecr.us-east-2.amazonaws.com/fresh-smoothie:latest
-                    docker push 779685156685.dkr.ecr.us-east-2.amazonaws.com/fresh-smoothie:latest
-                '''
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                  credentialsId: 'aws-credentials']]) {
+                    sh '''
+                        aws ecr get-login-password --region $AWS_REGION | \
+                        docker login --username AWS --password-stdin $ECR_REGISTRY
+
+                        docker tag fresh-smoothie:latest \
+                        $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+                        docker push \
+                        $ECR_REGISTRY/$ECR_REPOSITORY:latest
+                    '''
+                }
             }
         }
     }
@@ -45,6 +56,7 @@ pipeline {
         success {
             echo 'Fresh Smoothie pipeline completed successfully!'
         }
+
         failure {
             echo 'Fresh Smoothie pipeline failed.'
         }
