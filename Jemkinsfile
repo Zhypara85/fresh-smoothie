@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+
+    environment {
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        AWS_REGION = "us-east-2"
+        ECR_REGISTRY = "274044235662.dkr.ecr.us-east-2.amazonaws.com"
+        ECR_REPOSITORY = "fresh-smoothie"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t fresh-smoothie .'
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                  credentialsId: 'aws-credentials']]) {
+                    sh '''
+                        aws sts get-caller-identity
+
+                        aws ecr get-login-password --region $AWS_REGION | \
+                        docker login --username AWS --password-stdin $ECR_REGISTRY
+
+                        docker tag fresh-smoothie:latest \
+                        $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+                        docker push \
+                        $ECR_REGISTRY/$ECR_REPOSITORY:latest
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Fresh Smoothie pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Fresh Smoothie pipeline failed.'
+        }
+    }
+}
