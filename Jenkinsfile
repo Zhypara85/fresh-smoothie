@@ -36,7 +36,7 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'aws-credentials']]) {
+                                  credentialsId: 'fresh-smoothie-aws'']]) {
                     sh '''
                         aws ecr get-login-password --region $AWS_REGION | \
                         docker login --username AWS --password-stdin $ECR_REGISTRY
