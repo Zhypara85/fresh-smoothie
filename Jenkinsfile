@@ -4,11 +4,12 @@ pipeline {
     environment {
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         AWS_REGION = "us-east-2"
-        ECR_REGISTRY = "274044236621.dkr.ecr.us-east-2.amazonaws.com"
+        ECR_REGISTRY = "274044230621.dkr.ecr.us-east-2.amazonaws.com"
         ECR_REPOSITORY = "fresh-smoothie"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -21,6 +22,12 @@ pipeline {
             }
         }
 
+        stage('Lint') {
+            steps {
+                sh 'npm run lint'
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'npm run build'
@@ -29,14 +36,20 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t fresh-smoothie .'
+                sh 'docker build -t fresh-smoothie:latest .'
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                sh 'trivy image --exit-code 0 --severity HIGH,CRITICAL fresh-smoothie:latest'
             }
         }
 
         stage('Push to ECR') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'fresh-smoothie-aws']]) {
+                    credentialsId: 'fresh-smoothie-aws']]) {
                     sh '''
                         aws ecr get-login-password --region $AWS_REGION | \
                         docker login --username AWS --password-stdin $ECR_REGISTRY
