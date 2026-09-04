@@ -4,7 +4,7 @@ pipeline {
     environment {
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         AWS_REGION = "us-east-2"
-        ECR_REGISTRY = "274044235662.dkr.ecr.us-east-2.amazonaws.com"
+        ECR_REGISTRY = "274044236621.dkr.ecr.us-east-2.amazonaws.com"
         ECR_REPOSITORY = "fresh-smoothie"
     }
 
